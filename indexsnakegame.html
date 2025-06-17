@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shark Game</title>
+</head>
+<body>
+     <style>
+    body {
+      margin: 0;
+      background: #001F3F;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    canvas {
+      background: #0074D9;
+      border: 5px solid #fff;
+    }
+    #scoreDisplay{
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+    }
+    #startbutton{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate (-50%, -50%);
+        padding: 10px 20px;
+        font-size: 20px;
+        cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="400" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const startButton = document.getElementById("startButton")
+    const scoreDisplay = document.getElementById("scoreDisplay")
+    const gridSize = 20;
+    const sharkImg = new Image();
+    sharkImg.src = "https://i.fbcd.co/products/original/3a06f4bf8208b7ef20395c66e579294dd519b4d97c3adfcac1657df0996122fb.jpg"; // shark icon
+
+    let snake = [{ x: 200, y: 200 }];
+    let direction = "RIGHT";
+    let food = getRandomFood("apple.jpg");
+    let gameSpeed = 500;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      else if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+      else if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      else if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+    });
+
+    function getRandomFood() {
+      return {
+        x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
+        y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize,
+      };
+    }
+
+    function drawShark(x, y) {
+      ctx.drawImage(sharkImg, x, y, gridSize, gridSize);
+    }
+
+    function gameLoop() {
+      const head = { ...snake[0] };
+      if (direction === "UP") head.y -= gridSize;
+      if (direction === "DOWN") head.y += gridSize;
+      if (direction === "LEFT") head.x -= gridSize;
+      if (direction === "RIGHT") head.x += gridSize;
+
+      // Check collisions
+      if (
+        head.x < 0 || head.y < 0 ||
+        head.x >= canvas.width || head.y >= canvas.height ||
+        snake.some(s => s.x === head.x && s.y === head.y)
+      ) {
+        alert("Game Over!");
+        snake = [{ x: 200, y: 200 }];
+        direction = "RIGHT";
+        food = getRandomFood();
+        return;
+      }
+
+      snake.unshift(head);
+
+      // Eat food
+      if (head.x === food.x && head.y === food.y) {
+        food = getRandomFood();
+      } else {
+        snake.pop();
+      }
+
+      // Draw everything
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawShark(food.x, food.y); // food is also a shark
+
+      for (let i = 0; i < snake.length; i++) {
+        drawShark(snake[i].x, snake[i].y);
+      }
+    }
+
+    sharkImg.onload = () => setInterval(gameLoop, gameSpeed);
+  </script>
+</body>
+</html>
